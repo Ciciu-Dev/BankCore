@@ -1,8 +1,10 @@
 package me.alex.bankcore.services;
 
 import me.alex.bankcore.database.DatabaseManager;
+import me.alex.bankcore.models.TransactionRecord;
 
 import java.sql.SQLException;
+import java.util.List;
 import java.util.UUID;
 
 public class AccountService {
@@ -30,27 +32,31 @@ public class AccountService {
         );
     }
 
-    public void setBalance(UUID uuid, double amount) throws SQLException {
+    public void setBalance(UUID uuid, double amount)
+            throws SQLException {
+
         database.setBalance(uuid, amount, startingBalance);
     }
 
-    public void addBalance(UUID uuid, double amount) throws SQLException {
+    public void addBalance(UUID uuid, double amount)
+            throws SQLException {
+
         database.addBalance(uuid, amount, startingBalance);
     }
 
-    public boolean removeBalance(UUID uuid, double amount) throws SQLException {
-        double currentBalance = getBalance(uuid);
+    public boolean removeBalance(UUID uuid, double amount)
+            throws SQLException {
 
-        if (currentBalance < amount) {
-            return false;
-        }
-
-        database.setBalance(
+        return database.removeBalance(
                 uuid,
-                currentBalance - amount,
+                amount,
                 startingBalance
         );
+    }
 
-        return true;
+    public List<TransactionRecord> getHistory(UUID uuid)
+            throws SQLException {
+
+        return database.getHistory(uuid, 10);
     }
 }

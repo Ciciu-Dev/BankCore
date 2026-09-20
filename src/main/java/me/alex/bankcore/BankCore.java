@@ -3,6 +3,7 @@ package me.alex.bankcore;
 import me.alex.bankcore.commands.BalanceCommand;
 import me.alex.bankcore.commands.BankAdminCommand;
 import me.alex.bankcore.commands.BankCommand;
+import me.alex.bankcore.commands.BankHistoryCommand;
 import me.alex.bankcore.commands.PayCommand;
 import me.alex.bankcore.database.DatabaseManager;
 import me.alex.bankcore.listeners.BankMenuListener;
@@ -19,7 +20,6 @@ public final class BankCore extends JavaPlugin {
 
     @Override
     public void onEnable() {
-
         saveDefaultConfig();
 
         double startingBalance =
@@ -28,16 +28,10 @@ public final class BankCore extends JavaPlugin {
         databaseManager = new DatabaseManager(this);
 
         try {
-
             databaseManager.connect();
             getLogger().info("Connected to SQLite database.");
-
         } catch (SQLException exception) {
-
-            getLogger().severe(
-                    "Could not connect to the BankCore database!"
-            );
-
+            getLogger().severe("Could not connect to the BankCore database!");
             exception.printStackTrace();
 
             getServer().getPluginManager().disablePlugin(this);
@@ -59,6 +53,9 @@ public final class BankCore extends JavaPlugin {
         Objects.requireNonNull(getCommand("bankadmin"))
                 .setExecutor(new BankAdminCommand(accountService));
 
+        Objects.requireNonNull(getCommand("bankhistory"))
+                .setExecutor(new BankHistoryCommand(accountService));
+
         getServer().getPluginManager().registerEvents(
                 new BankMenuListener(),
                 this
@@ -69,7 +66,6 @@ public final class BankCore extends JavaPlugin {
 
     @Override
     public void onDisable() {
-
         if (databaseManager != null) {
             databaseManager.close();
         }
