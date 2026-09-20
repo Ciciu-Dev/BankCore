@@ -1,18 +1,29 @@
 name: BankCore
-version: 0.1.0
+version: 0.2.0
 main: me.alex.bankcore.BankCore
 api-version: '26.2'
 author: Alex
 description: A modern banking and economy system built for Paper.
 
 commands:
+
   balance:
     description: View your bank balance.
     aliases: [bal]
     usage: /balance
     permission: bankcore.balance
 
+  pay:
+    description: Send money to another player.
+    usage: /pay <player> <amount>
+    permission: bankcore.pay
+
 permissions:
+
   bankcore.balance:
-    description: Allows players to view their bank balance.
+    description: Allows players to view their balance.
+    default: true
+
+  bankcore.pay:
+    description: Allows players to send money.
     default: true

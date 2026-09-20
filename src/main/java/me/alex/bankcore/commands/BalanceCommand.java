@@ -7,6 +7,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.sql.SQLException;
+
 public class BalanceCommand implements CommandExecutor {
 
     private final AccountService accountService;
@@ -27,9 +29,20 @@ public class BalanceCommand implements CommandExecutor {
             return true;
         }
 
-        double balance = accountService.getBalance(player.getUniqueId());
+        try {
+            double balance = accountService.getBalance(player.getUniqueId());
 
-        player.sendMessage("§aBank Balance: §f$" + String.format("%.2f", balance));
+            player.sendMessage(
+                    "§aBank Balance: §f$" + String.format("%.2f", balance)
+            );
+
+        } catch (SQLException exception) {
+            player.sendMessage(
+                    "§cSomething went wrong while accessing your bank account."
+            );
+
+            exception.printStackTrace();
+        }
 
         return true;
     }
