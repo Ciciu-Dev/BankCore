@@ -1,6 +1,0 @@
-name: BankCore
-version: 0.1.0
-main: me.alex.bankcore.BankCore
-api-version: '26.2'
-author: Alex
-description: A modern banking and economy system built for Paper.

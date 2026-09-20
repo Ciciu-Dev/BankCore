@@ -4,3 +4,15 @@ main: me.alex.bankcore.BankCore
 api-version: '26.2'
 author: Alex
 description: A modern banking and economy system built for Paper.
+
+commands:
+  balance:
+    description: View your bank balance.
+    aliases: [bal]
+    usage: /balance
+    permission: bankcore.balance
+
+permissions:
+  bankcore.balance:
+    description: Allows players to view their bank balance.
+    default: true
