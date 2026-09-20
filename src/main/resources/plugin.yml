@@ -1,5 +1,5 @@
 name: BankCore
-version: 0.2.0
+version: 0.3.0
 main: me.alex.bankcore.BankCore
 api-version: '26.2'
 author: Alex
@@ -22,15 +22,21 @@ commands:
     usage: /bank
     permission: bankcore.bank
 
+  bankadmin:
+    description: Manage player bank balances.
+    usage: /bankadmin <set|add|remove> <player> <amount>
+    permission: bankcore.admin
+
 permissions:
   bankcore.balance:
-    description: Allows players to view their balance.
     default: true
 
   bankcore.pay:
-    description: Allows players to send money.
     default: true
 
   bankcore.bank:
-    description: Allows players to open the BankCore menu.
     default: true
+
+  bankcore.admin:
+    description: Allows access to BankCore admin commands.
+    default: op

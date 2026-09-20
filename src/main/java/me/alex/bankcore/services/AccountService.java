@@ -29,4 +29,28 @@ public class AccountService {
                 startingBalance
         );
     }
+
+    public void setBalance(UUID uuid, double amount) throws SQLException {
+        database.setBalance(uuid, amount, startingBalance);
+    }
+
+    public void addBalance(UUID uuid, double amount) throws SQLException {
+        database.addBalance(uuid, amount, startingBalance);
+    }
+
+    public boolean removeBalance(UUID uuid, double amount) throws SQLException {
+        double currentBalance = getBalance(uuid);
+
+        if (currentBalance < amount) {
+            return false;
+        }
+
+        database.setBalance(
+                uuid,
+                currentBalance - amount,
+                startingBalance
+        );
+
+        return true;
+    }
 }

@@ -38,14 +38,12 @@ public class DatabaseManager {
             File databaseFile =
                     new File(plugin.getDataFolder(), "bankcore.db");
 
-            jdbcUrl =
-                    "jdbc:sqlite:" + databaseFile.getAbsolutePath();
+            jdbcUrl = "jdbc:sqlite:" + databaseFile.getAbsolutePath();
         }
 
         connection = DriverManager.getConnection(jdbcUrl);
 
         try (Statement statement = connection.createStatement()) {
-
             statement.execute("""
                 CREATE TABLE IF NOT EXISTS accounts (
                     uuid TEXT PRIMARY KEY,
@@ -97,6 +95,46 @@ public class DatabaseManager {
         }
     }
 
+    public synchronized void setBalance(
+            UUID uuid,
+            double amount,
+            double startingBalance
+    ) throws SQLException {
+
+        createAccount(uuid, startingBalance);
+
+        try (PreparedStatement statement =
+                     connection.prepareStatement(
+                             "UPDATE accounts SET balance = ? WHERE uuid = ?"
+                     )) {
+
+            statement.setDouble(1, amount);
+            statement.setString(2, uuid.toString());
+
+            statement.executeUpdate();
+        }
+    }
+
+    public synchronized void addBalance(
+            UUID uuid,
+            double amount,
+            double startingBalance
+    ) throws SQLException {
+
+        createAccount(uuid, startingBalance);
+
+        try (PreparedStatement statement =
+                     connection.prepareStatement(
+                             "UPDATE accounts SET balance = balance + ? WHERE uuid = ?"
+                     )) {
+
+            statement.setDouble(1, amount);
+            statement.setString(2, uuid.toString());
+
+            statement.executeUpdate();
+        }
+    }
+
     public synchronized boolean transfer(
             UUID sender,
             UUID receiver,
@@ -141,7 +179,6 @@ public class DatabaseManager {
             }
 
             connection.commit();
-
             return true;
 
         } catch (SQLException exception) {

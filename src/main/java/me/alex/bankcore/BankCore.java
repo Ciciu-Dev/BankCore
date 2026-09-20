@@ -1,6 +1,7 @@
 package me.alex.bankcore;
 
 import me.alex.bankcore.commands.BalanceCommand;
+import me.alex.bankcore.commands.BankAdminCommand;
 import me.alex.bankcore.commands.BankCommand;
 import me.alex.bankcore.commands.PayCommand;
 import me.alex.bankcore.database.DatabaseManager;
@@ -29,7 +30,6 @@ public final class BankCore extends JavaPlugin {
         try {
 
             databaseManager.connect();
-
             getLogger().info("Connected to SQLite database.");
 
         } catch (SQLException exception) {
@@ -55,6 +55,9 @@ public final class BankCore extends JavaPlugin {
 
         Objects.requireNonNull(getCommand("bank"))
                 .setExecutor(new BankCommand(accountService));
+
+        Objects.requireNonNull(getCommand("bankadmin"))
+                .setExecutor(new BankAdminCommand(accountService));
 
         getServer().getPluginManager().registerEvents(
                 new BankMenuListener(),
