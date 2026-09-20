@@ -9,23 +9,40 @@ import java.util.UUID;
 public class DatabaseManager {
 
     private final JavaPlugin plugin;
+    private final String customJdbcUrl;
+
     private Connection connection;
 
     public DatabaseManager(JavaPlugin plugin) {
         this.plugin = plugin;
+        this.customJdbcUrl = null;
+    }
+
+    public DatabaseManager(String jdbcUrl) {
+        this.plugin = null;
+        this.customJdbcUrl = jdbcUrl;
     }
 
     public void connect() throws SQLException {
 
-        if (!plugin.getDataFolder().exists()) {
-            plugin.getDataFolder().mkdirs();
+        String jdbcUrl;
+
+        if (customJdbcUrl != null) {
+            jdbcUrl = customJdbcUrl;
+        } else {
+
+            if (!plugin.getDataFolder().exists()) {
+                plugin.getDataFolder().mkdirs();
+            }
+
+            File databaseFile =
+                    new File(plugin.getDataFolder(), "bankcore.db");
+
+            jdbcUrl =
+                    "jdbc:sqlite:" + databaseFile.getAbsolutePath();
         }
 
-        File databaseFile = new File(plugin.getDataFolder(), "bankcore.db");
-
-        connection = DriverManager.getConnection(
-                "jdbc:sqlite:" + databaseFile.getAbsolutePath()
-        );
+        connection = DriverManager.getConnection(jdbcUrl);
 
         try (Statement statement = connection.createStatement()) {
 
@@ -38,34 +55,44 @@ public class DatabaseManager {
         }
     }
 
-    public synchronized double getBalance(UUID uuid, double startingBalance)
-            throws SQLException {
+    public synchronized double getBalance(
+            UUID uuid,
+            double startingBalance
+    ) throws SQLException {
 
         createAccount(uuid, startingBalance);
 
-        try (PreparedStatement statement = connection.prepareStatement(
-                "SELECT balance FROM accounts WHERE uuid = ?")) {
+        try (PreparedStatement statement =
+                     connection.prepareStatement(
+                             "SELECT balance FROM accounts WHERE uuid = ?"
+                     )) {
 
             statement.setString(1, uuid.toString());
 
-            ResultSet results = statement.executeQuery();
+            try (ResultSet results = statement.executeQuery()) {
 
-            if (results.next()) {
-                return results.getDouble("balance");
+                if (results.next()) {
+                    return results.getDouble("balance");
+                }
             }
-
-            return startingBalance;
         }
+
+        return startingBalance;
     }
 
-    private void createAccount(UUID uuid, double startingBalance)
-            throws SQLException {
+    private void createAccount(
+            UUID uuid,
+            double startingBalance
+    ) throws SQLException {
 
-        try (PreparedStatement statement = connection.prepareStatement(
-                "INSERT OR IGNORE INTO accounts(uuid, balance) VALUES(?, ?)")) {
+        try (PreparedStatement statement =
+                     connection.prepareStatement(
+                             "INSERT OR IGNORE INTO accounts(uuid, balance) VALUES(?, ?)"
+                     )) {
 
             statement.setString(1, uuid.toString());
             statement.setDouble(2, startingBalance);
+
             statement.executeUpdate();
         }
     }
@@ -84,17 +111,25 @@ public class DatabaseManager {
             createAccount(sender, startingBalance);
             createAccount(receiver, startingBalance);
 
-            double senderBalance = getBalance(sender, startingBalance);
+            double senderBalance =
+                    getBalance(sender, startingBalance);
 
             if (senderBalance < amount) {
                 connection.rollback();
                 return false;
             }
 
-            try (PreparedStatement remove = connection.prepareStatement(
-                    "UPDATE accounts SET balance = balance - ? WHERE uuid = ?");
-                 PreparedStatement add = connection.prepareStatement(
-                    "UPDATE accounts SET balance = balance + ? WHERE uuid = ?")) {
+            try (
+                    PreparedStatement remove =
+                            connection.prepareStatement(
+                                    "UPDATE accounts SET balance = balance - ? WHERE uuid = ?"
+                            );
+
+                    PreparedStatement add =
+                            connection.prepareStatement(
+                                    "UPDATE accounts SET balance = balance + ? WHERE uuid = ?"
+                            )
+            ) {
 
                 remove.setDouble(1, amount);
                 remove.setString(2, sender.toString());
@@ -106,6 +141,7 @@ public class DatabaseManager {
             }
 
             connection.commit();
+
             return true;
 
         } catch (SQLException exception) {
@@ -127,10 +163,15 @@ public class DatabaseManager {
 
         try {
             connection.close();
+
         } catch (SQLException exception) {
-            plugin.getLogger().severe(
-                    "Failed to close database: " + exception.getMessage()
-            );
+
+            if (plugin != null) {
+                plugin.getLogger().severe(
+                        "Failed to close database: "
+                                + exception.getMessage()
+                );
+            }
         }
     }
 }
